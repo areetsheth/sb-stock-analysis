@@ -238,3 +238,22 @@ def generate_year_map():
     return companies_2019_map, companies_2020_map, companies_2021_map, companies_2022_map, companies_2023_map
 
 company_2019_map, company_2020_map, company_2021_map, company_2022_map, company_2023_map = generate_year_map()
+
+superbowl_dates = {
+    '2019': datetime.datetime(2019, 2, 3),
+    '2020': datetime.datetime(2020, 2, 2),
+    '2021': datetime.datetime(2021, 2, 7),
+    '2022': datetime.datetime(2022, 2, 13),
+    '2023': datetime.datetime(2023, 2, 12),
+    '2024': datetime.datetime(2024, 2, 11)
+}
+
+following_monday_dates = {
+    '2019': datetime.datetime(2019, 2, 4),
+    '2020': datetime.datetime(2020, 2, 3),
+    '2021': datetime.datetime(2021, 2, 8),
+    '2022': datetime.datetime(2022, 2, 14),
+    '2023': datetime.datetime(2023, 2, 13),
+    '2024': datetime.datetime(2024, 2, 12)
+
+}
