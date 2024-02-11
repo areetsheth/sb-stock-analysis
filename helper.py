@@ -4,6 +4,8 @@ import yfinance as yf
 from yahoo_fin import stock_info as si
 import datetime
 import re
+import pandas as pd
+
 def get_companies(filename):
     companies = set()
     with open(filename, "r", encoding='utf-8') as file:
@@ -14,7 +16,7 @@ def get_companies(filename):
     for info_div in info_divs:
         a_tag = info_div.find('a')
         if a_tag:
-            if ':' in a_tag.text and '\"' not in a_tag.tsext:
+            if ':' in a_tag.text and '\"' not in a_tag.text:
                 companies.add(a_tag.text.strip().split(':')[0])
             else:
                 companies.add(a_tag.text.strip().split(' \"')[0].strip())
@@ -88,7 +90,7 @@ ticker_map = {
     'Dexcom': 'DXCM',
     'Planet Fitness': 'PLNT',
     'Amazon': 'AMZN',
-    'Paramount+': 'VIAC',
+    'Paramount+': 'PARA',
     'Sketchers': 'SKX',
     'Taco Bell': 'YUM',
     'Meta': 'META',
@@ -188,7 +190,7 @@ ticker_map = {
 }
 
 companies_2024 = {
-    'Paramount+': 'VIAC',
+    'Paramount+': 'PARA',
     'Google': 'GOOGL',
     'M&M’s': 'MNBP',
     'OREO': 'MDLZ',
@@ -206,8 +208,7 @@ companies_2024 = {
     'Kawasaki': 'KWHIY',
     'Uber Eats': 'UBER',
     'DoorDash': 'DASH',
-    'Popeyes': 'PLKI',
-    'Dunkin': 'DNKN'
+    'Popeyes': 'PLKI'
 }
 
 def generate_year_map():
@@ -257,3 +258,67 @@ following_monday_dates = {
     '2024': datetime.datetime(2024, 2, 12)
 
 }
+
+previous_friday_dates = {
+    '2019': datetime.datetime(2019, 2, 1),
+    '2020': datetime.datetime(2020, 1, 31),
+    '2021': datetime.datetime(2021, 2, 5),
+    '2022': datetime.datetime(2022, 2, 11),
+    '2023': datetime.datetime(2023, 2, 10),
+    '2024': datetime.datetime(2024, 2, 9)
+}
+
+company_to_year_count = {}
+new_companies = set()
+for company in companies_2024:
+    ticker = companies_2024[company]
+    if ticker in set(ticker_map.values()):
+        if ticker not in company_to_year_count:
+            company_to_year_count[ticker] = set()
+        if ticker in set(company_2019_map.values()):
+            company_to_year_count[ticker].add(2019)
+        if ticker in set(company_2020_map.values()):
+            company_to_year_count[ticker].add(2020)
+        if ticker in set(company_2021_map.values()):
+            company_to_year_count[ticker].add(2021)
+        if ticker in set(company_2022_map.values()):
+            company_to_year_count[ticker].add(2022)
+        if ticker in set(company_2023_map.values()):
+            company_to_year_count[ticker].add(2023)
+    else:
+        new_companies.add(company)
+
+ticker_to_price_increase = {}
+for ticker in company_to_year_count:
+    if ticker not in ticker_to_price_increase:
+        ticker_to_price_increase[ticker] = []
+    for year in company_to_year_count[ticker]:
+        start_date = previous_friday_dates[str(year)]
+        one_day_after_start = start_date + datetime.timedelta(days=1)
+        end_date = following_monday_dates[str(year)]
+        one_day_after_end = end_date + datetime.timedelta(days=1)
+
+        close_price = yf.Ticker(ticker).history(start=start_date, end=one_day_after_start)['Close'].iloc[0]
+        max_price = yf.Ticker(ticker).history(start=end_date, end=one_day_after_end)['High'].iloc[0]
+
+        price_increase = (max_price - close_price) / close_price
+        ticker_to_price_increase[ticker].append(price_increase)
+
+
+ticker_to_avg_price_increase = {}
+for ticker in ticker_to_price_increase:
+    ticker_to_avg_price_increase[ticker] = 100*(sum(ticker_to_price_increase[ticker]) / len(ticker_to_price_increase[ticker]))
+
+#sort the dictionary by descending order
+ticker_to_avg_price_increase = dict(sorted(ticker_to_avg_price_increase.items(), key=lambda item: item[1], reverse=True))
+
+data = []
+
+for ticker in ticker_to_avg_price_increase:
+    data.append({
+        'Ticker': ticker,
+        'Average Price Increase': ticker_to_avg_price_increase[ticker],
+        'SB Commercials Since 2019': len(company_to_year_count[ticker])
+    })
+
+df = pd.DataFrame(data)

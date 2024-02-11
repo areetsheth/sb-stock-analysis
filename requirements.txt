@@ -1,0 +1,7 @@
+beautifulsoup4
+pandas
+requests
+selenium
+webdriver-manager
+yahoo-fin
+yfinance

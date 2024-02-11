@@ -1,4 +1,4 @@
-import tickers
+import misc.tickers as tickers
 import yfinance as yf
 
 print(yf.Ticker('EVE.U').info.keys())
