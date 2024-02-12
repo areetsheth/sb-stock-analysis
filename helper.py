@@ -299,7 +299,7 @@ for ticker in company_to_year_count:
         one_day_after_end = end_date + datetime.timedelta(days=1)
 
         close_price = yf.Ticker(ticker).history(start=start_date, end=one_day_after_start)['Close'].iloc[0]
-        max_price = yf.Ticker(ticker).history(start=end_date, end=one_day_after_end)['High'].iloc[0]
+        max_price = yf.Ticker(ticker).history(start=end_date, end=one_day_after_end)['Open'].iloc[0]
 
         price_increase = (max_price - close_price) / close_price
         ticker_to_price_increase[ticker].append(price_increase)
@@ -322,3 +322,21 @@ for ticker in ticker_to_avg_price_increase:
     })
 
 df = pd.DataFrame(data)
+
+actual_ticker_to_price_increase = {}
+for ticker in company_to_year_count:
+    if ticker == 'MNBP':
+        continue
+    start_date = datetime.datetime(2024, 2, 9)
+    one_day_after_start = start_date + datetime.timedelta(days=1)
+    end_date = datetime.datetime(2024, 2, 12)
+    one_day_after_end = end_date + datetime.timedelta(days=1)
+
+    close_price = yf.Ticker(ticker).history(start=start_date, end=one_day_after_start)['Close'].iloc[0]
+    open_price = yf.Ticker(ticker).history(start=end_date, end=one_day_after_end)['Open'].iloc[0]
+
+    price_increase = 100*(open_price - close_price) / close_price
+    actual_ticker_to_price_increase[ticker] = price_increase
+
+df['Actual Price Increase'] = df['Ticker'].map(actual_ticker_to_price_increase)
+print(df.sort_values(by='Actual Price Increase', ascending=False))
